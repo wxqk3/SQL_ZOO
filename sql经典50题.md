@@ -91,7 +91,7 @@ where s1.c_id='01' and s2.c_id='02' and s1.`s_score`>s2.`s_score`
 
 -- 2. 查询平均成绩大于60分的学生的学号和平均成绩（简单，第二道重点）
 
--- my answer:
+-- my answer 错误，是平均:
 select student.s_id,avg(s_score) from student 
 join score
 on student.s_id = score.s_id
@@ -154,10 +154,10 @@ group by sc.s_id
 having COUNT(0)=1
 )
 
--- 7. 查询学过01课 也学过02课的学生
+-- 7. 查询学过01课 也学过02课的学生信息
 
 -- way1 全链接
-select st.s_id from student st
+select * from student st
 join score sc on st.s_id=sc.s_id
 join course co on co.c_id=sc.c_id
 join teacher te on te.t_id=co.t_id
@@ -165,6 +165,43 @@ where co.c_id='01' or co.c_id='02'
 group by st.s_id
 having count(0) = 2
 
---way 2
+-- way 2 
+select * from student 
+where s_id in
+(
+select * from score s1 
+join score s2 on s1.s_id=s2.s_id
+where s1.c_id=01 and s2.c_id=02
+
+)
 
 
+-- 8查询课程编号 02 总成绩
+
+-- way1 无脑全链接
+select sum(sc.s_score) from student st
+join score sc on st.s_id=sc.s_id
+join course co on co.c_id=sc.c_id
+join teacher te on te.t_id=co.t_id
+where co.c_id='02' 
+group by co.c_id
+
+-- way 2
+select sum(s_score) from score
+where c_id='02' 
+
+
+
+-- 9 查询所有课程成绩小于60分的学生的学号、姓名
+select s_id from student 
+where s_id not in(
+select s_id from score 
+where s_score > 60)
+
+-- 10.查询没有学全所有课的学生的学号、姓名(重点)
+
+select st.s_id,st.s_name from student st
+join score sc on st.s_id=sc.s_id
+group by s_id,s_name
+having count(c_id) <
+(select count(distinct c_id) from course)
