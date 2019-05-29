@@ -205,3 +205,108 @@ join score sc on st.s_id=sc.s_id
 group by s_id,s_name
 having count(c_id) <
 (select count(distinct c_id) from course)
+
+-- 11、查询至少有一门课与学号为“01”的学生所学课程相同的学生的学号和姓名（重点）
+
+select s_id,s_name from student where s_id in(
+
+select distinct s_id from score where c_id in(
+select distinct c_id from score 
+where s_id=01))
+
+and s_id != 01
+
+-- 12.查询和“01”号同学所学课程完全相同的其他同学的学号(重点)
+
+select s_id from score where c_id in(
+select distinct c_id from score 
+where s_id=01) and s_id!=01
+group by s_id
+having count(c_id) = (select count(c_id) from score where  s_id=01)
+
+-- 13、查询没学过"张三"老师讲授的任一门课程的学生姓名 和47题一样（重点，能做出来）
+select distinct s_name from student where s_id not in(
+
+select distinct s_id from score where c_id in(
+	select distinct c_id from course co join teacher te
+	on co.t_id=te.t_id 
+	and te.t_name = '张三'
+))
+
+-- 15、查询两门及其以上不及格课程的同学的学号，姓名及其平均成绩（重点）
+select st.s_id,avg(s_score),s_name from score sc
+join student st on st.s_id=sc.s_id
+where s_score <60
+group by st.s_id
+having count(c_id)>=2
+
+-- 16.检索"01"课程分数小于60，按分数降序排列的学生信息（和34题重复，不重点）
+select * from student st join(
+select s_id,s_score from score 
+where c_id = 01 and s_score <60
+) a1
+on st.s_id = a1.s_id
+order by s_score 
+
+-- 17、按平均成绩从高到低显示所有学生的所有课程的成绩以及平均成绩(重重点与35一样)
+
+select * from 
+(select s_score,s_id,c_id from score 
+where c_id = 01) s1
+join
+(select s_score,s_id,c_id from score 
+where c_id = 02) s2
+on s1.s_id= s2.s_id
+join
+(select s_score,s_id,c_id from score 
+where c_id = 03) s3
+on s1.s_id= s3.s_id
+
+
+-- mysql 不支持full join 用 left then right then union代替
+
+-- 方法2
+
+select s_id,
+max(case when c_id=01 then s_score else 0 end )'语文',
+max(case when c_id=02 then s_score else 0 end )'数学',
+max(case when c_id=03 then s_score else 0 end )'英语',
+avg(s_score)
+from score
+group by s_id
+
+
+-- 18.查询各科成绩最高分、最低分和平均分：以如下形式显示：课程ID，课程name，最高分，最低分，平均分，及格率，中等率，优良率，优秀率
+
+select c_id,max(s_score),min(s_score),avg(s_score) pinjun,avg(case when s_score>60 then 1 else 0 end) jige,
+avg(case when (s_score>=70 and s_score<80) then 1 else 0 end) zhongdeng,
+avg(case when (s_score>=80 and s_score<90) then 1 else 0 end) you,
+avg(case when s_score>=90  then 1 else 0 end) xiu
+
+from score
+group by c_id
+
+-- -- 19、按各科成绩进行排序，并显示排名(重点row_number)
+select * from
+(select s_id,c_id,s_score from score
+where c_id = 01
+order by s_score desc) t1
+
+union all
+
+select * from
+(select s_id,c_id,s_score from score
+where c_id = 02
+order by s_score desc) t2 
+
+-- 上述答案错误 union导致排序无效
+
+-- standard:
+select s_id,c_id,s_score,Row_Number() OVER (partition by c_id ORDER BY s_score desc)  from score
+
+-- 20.查询学生的总成绩并进行排名（不重点）
+select s_id,sum(s_score) from score
+group by s_id
+
+
+
