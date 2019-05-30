@@ -309,4 +309,95 @@ select s_id,sum(s_score) from score
 group by s_id
 
 
+-- 21 、查询不同老师所教不同课程平均分从高到低显示(不重点)
+select te.t_id,sc.c_id, avg(sc.s_score) from score sc
+join course co on sc.c_id = co.c_id
+join teacher te on te.t_id = co.t_id
+group by te.t_id，sc.c_id
 
+order by avg(sc.s_score)
+
+-- group by 常见错误 https://blog.csdn.net/qq_26525215/article/details/52139296
+
+-- 22、查询所有课程的成绩第2名到第3名的学生信息及该课程成绩（重要 25类似）row number
+select * from
+(select st.s_id,st.s_name,sc.c_id,sc.s_score,Row_Number() OVER (partition by c_id ORDER BY s_score desc) paiming
+from student st
+join score sc on sc.s_id=st.s_id) a
+where paiming in (2,3)
+
+-- 这种先计算的 where就不能识别，需用两个select
+
+-- 使用分段[100-85],[85-70],[70-60],[<60]来统计各科成绩，分别统计各分数段人数：课程ID和课程名称(重点和18题类似)
+
+select c_id,
+case when s_score<60 then s_score else null end '[<60]',
+case when s_score>=60 and s_score<70 then s_score else null end'[70-60]',
+case when s_score>=70 and s_score<85 then s_score else null end"[85-70]",
+case when s_score>=85 and s_score<=100 then s_score else null end"[100-85]"
+from score
+
+
+-- 一对一变一对多 用case
+
+/* select c_id,avg(s_score)
+from score
+where c_id=01
+group by c_id */
+
+-- 24、查询学生平均成绩及其名次（同19题，重点）
+select avg(s_score), row_number() over (order by avg(s_score)) 
+from score 
+group by s_id
+
+-- 25.查询各科成绩前三名的记录（不考虑成绩并列情况）（重点 与22题类似）
+
+-- p 是新表的东西，需要重新使用select
+select * from(
+select c_id,s_score,row_number() over (partition by c_id order by s_score desc) p
+from score
+) a
+where p in (1,2,3)
+
+-- 若要转置，则代码应该为
+
+select `c_id` ,
+max(case when p=1 then s_score else 0 end ) rank1,
+max(case when p=2 then s_score else 0 end )rank2,
+max(case when p=3 then s_score else 0 end )rank3
+from(
+select c_id,s_score,row_number() over (partition by c_id order by s_score desc) p
+from score
+) a
+where p in (1,2,3)
+group by c_id
+
+  /*   row_number() 是没有重复值的排序(即使两天记录相等也是不重复的)，可以利用它来实现分页
+    dense_rank() 是连续排序，两个第二名仍然跟着第三名
+    rank()       是跳跃拍学，两个第二名下来就是第四名 */
+
+-- 26、查询每门课程被选修的学生数(不重点)
+select c_id,count(distinct s_id) from score
+group by c_id
+
+-- 27、 查询出只有两门课程的全部学生的学号和姓名(不重点)
+select st.s_name,st.s_id from student st
+join score sc on st.s_id = sc.s_id
+group by st.s_name,st.s_id
+having count(0)=2
+
+-- 28、查询男生、女生人数(不重点)
+select sum(case when s_sex='男' then 1 else 0 end) nan,
+sum(case when s_sex='女' then 1 else 0 end) girl
+from student
+group by s_sex
+
+-- 简单做法
+select s_sex,count(s_sex) from student
+group by s_sex
+
+-- 29 查询名字中含有"风"字的学生信息（不重点）
+select * from student 
+where s_name like '%风%'
+
+-- 30题忽略掉 太简单
