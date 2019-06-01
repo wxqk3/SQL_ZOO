@@ -469,3 +469,74 @@ select t_id from teacher where t_name='张三'
 ))
 order by s_score desc
 limit 1
+
+-- 41.查询不同课程成绩相同的学生的学生编号、课程编号、学生成绩 （重点）
+select * from
+(select s_id,c_id,s_score from score where c_id=01) a
+join (select s_id,c_id,s_score from score where c_id=02) b
+on a.s_id=b.s_id
+join (select s_id,c_id,s_score from score where c_id=03) c
+on c.s_id=b.s_id
+where a.s_score=b.s_score and b.s_score=c.s_score
+
+-- 42、查询每门功成绩最好的前两名（同22和25题）
+select * from
+(select s_id,c_id,s_score, row_number() over (partition by c_id order by s_score desc) rankk from score) a
+where rankk = 1 or rankk=2
+
+-- 43、统计每门课程的学生选修人数（超过5人的课程才统计）。要求输出课程号和选修人数，查询结果按人数降序排列，若人数相同，按课程号升序排列（不重要）
+select c_id,count(0) from score
+group by c_id
+having count(c_id)>5
+order by count(c_id) desc,c_id asc
+
+-- 44、检索至少选修两门课程的学生学号（不重要）
+select s_id,count(c_id) from score
+group by s_id
+having count(c_id)>=2
+
+-- 45、 查询选修了全部课程的学生信息（重点划红线地方）
+select s_id,count(0) from score
+group by s_id
+having count(c_id)=(select count(distinct c_id) from course)
+
+-- 46、查询各学生的年龄（精确到月份）
+select s_id,s_birth,
+datediff(s_birth,CURDATE())/(-365)
+from student
+
+
+-- 47、查询没学过“张三”老师讲授的任一门课程的学生姓名
+select distinct s_name from student st
+
+where s_id not in
+(select s_id from score 
+where c_id in
+(
+select c_id from course where t_id in(
+select t_id from teacher where t_name='张三'
+)) 
+) 
+
+-- 48、查询两门以上不及格课程的同学的学号及其平均成绩
+select s_id,avg(s_score) from score
+where s_score<60
+group by s_id
+
+-- 49(1) 查询本周过生日的学生（使用week、date(now()）
+
+select s_id,s_birth from student
+where week(s_birth,1)=week(date(now()),1)
+-- select week(date(now()),1)
+-- select date(now()),CURDATE()
+-- 49(2) 查询下周过生日的学生（使用week、date(now()）
+select s_id,s_birth from student
+where week(s_birth,1)=week(date(now()),1)+1
+-- 50（1）查询本月过生日的学生（使用week、date(now()）
+select s_id,s_birth from student
+where month(s_birth)=month(date(now()))
+-- 50（2）查询下月过生日的学生（使用week、date(now()）
+select s_id,s_birth from student
+where month(s_birth)=month(date(now()))+1
+
+-- 另外50种解法及部分参考答案见 https://zhuanlan.zhihu.com/p/43289968，本人在做完经典50题时发现答案和其不完全一样，已修订部分答案
