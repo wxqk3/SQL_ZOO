@@ -401,3 +401,71 @@ select * from student
 where s_name like '%风%'
 
 -- 30题忽略掉 太简单
+
+-- 31、查询1990年出生的学生名单（重点year）
+
+select * from student
+where s_birth like '1990%' 
+
+-- 32、查询平均成绩大于等于85的所有学生的学号、姓名和平均成绩（不重要）
+select st.s_id,st.s_name,a.average from student st
+join(
+select avg(s_score) average,s_id from score sc
+group by s_id) a
+on st.s_id = a.s_id
+
+-- 33、查询每门课程的平均成绩，结果按平均成绩升序排序，平均成绩相同时，按课程号降序排列（不重要）
+select avg(s_score) from score 
+group by `c_id`
+order by avg(s_score) asc, c_id desc
+
+-- 34、查询课程名称为"数学"，且分数低于60的学生姓名和分数（不重点）
+select st.s_name,sc.s_score from student st
+join score sc on st.s_id=sc.s_id
+where s_score < 60 and c_id in
+(
+select c_id from course
+where c_name = '数学'
+)
+
+-- 35.查询所有学生的课程及分数情况（重点）
+select s_id,
+max(case when `c_id`=01 then s_score else 0 end) ,
+max(case when `c_id`=02 then s_score else 0 end) ,
+max(case when `c_id`=03 then s_score else 0 end) 
+from score
+group by s_id
+
+-- 36、查询任何一门课程成绩在70分以上的姓名、课程名称和分数（重点）
+select st.s_name,co.c_name,sc.s_score
+from student st
+join score sc on st.s_id=sc.s_id
+join course co on co.c_id=sc.c_id
+where sc.s_score >=70
+
+-- 37、查询不及格的课程并按课程号从大到小排列(不重点)
+select s_id,s_score from score
+
+where s_score <60
+order by s_id desc 
+
+-- 38、查询课程编号为03且课程成绩在80分以上的学生的学号（不重要）
+select s_id from score
+where c_id=03 and s_score >80
+
+-- 39、求每门课程的学生人数（不重要）
+select count(distinct s_id),c_id from score
+group by c_id
+
+-- 40、查询选修“张三”老师所授课程的学生中成绩最高的学生姓名及其成绩（重要top）
+select st.s_name,s_score from student st
+join score sc on st.s_id = sc.s_id
+where c_id in
+
+
+(
+select c_id from course where t_id in(
+select t_id from teacher where t_name='张三'
+))
+order by s_score desc
+limit 1
