@@ -6,6 +6,9 @@ My own ansers to all questions in SQL_ZOO(just for reference):http://sqlzoo.net/
 
 # SQL 经典50题 100种解法 by William Xia. 2019 MAY 
 
+##### 其中重点为：1/2/5/6/7/10/11/12/13/15/17/18/19/22/23/25/31/35/36/40/41/42/45/46 共16题
+
+##### 超级重点 18和23、 22和25 、 41、46
 
 -- 所有数据导入
 
@@ -588,5 +591,6 @@ My own ansers to all questions in SQL_ZOO(just for reference):http://sqlzoo.net/
 	select s_id,s_birth from student
 	where month(s_birth)=month(date(now()))+1
 
--- 另外50种解法及部分参考答案见 https://zhuanlan.zhihu.com/p/43289968，本人在做完经典50题时发现答案和其不完全一样，已修订部分答案
+-- 另外50种解法及部分参考答案见 https://zhuanlan.zhihu.com/p/43289968
+   本人在做完经典50题时发现答案和其不完全一样，已修订部分答案
 
